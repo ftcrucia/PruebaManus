@@ -1,0 +1,10 @@
+{
+  "name": "Remix: Digitalizador de Archivos",
+  "description": "Digitaliza facturas, remitos, notas, presupuestos, informes, recibos y planillas a texto plano, JSON y CSV usando la API de Gemini 3.5 Flash.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
