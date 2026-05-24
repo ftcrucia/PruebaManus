@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { initializeAuth, saveDigitalizedDocument } from './firebase';
 import { 
   Plus, 
   Menu, 
@@ -52,6 +53,11 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
   const [loadStep, setLoadStep] = useState<number>(0);
+
+  // Initialize Firebase Auth and history on component mount
+  useEffect(() => {
+    initializeAuth().catch(err => console.error('Error initializing Firebase:', err));
+  }, []);
 
   // Initialize history and active document selection from localStorage
   useEffect(() => {
@@ -157,6 +163,27 @@ export default function App() {
         fileMime: mimeType,
         filePreview: base64, // Keep base64 locally in state for rendering!
       };
+
+      // Save to Firebase Firestore
+      try {
+        await saveDigitalizedDocument({
+          fileName: name,
+          documentType: extracted.documentType || 'otro',
+          documentTypeConfidence: extracted.documentTypeConfidence || 0.9,
+          language: extracted.language || 'es',
+          summary: extracted.summary || 'Documento digitalizado con éxito.',
+          extractedData: {
+            plainText: extracted.extractedData?.plainText || '# Sin contenido',
+            jsonData: extracted.extractedData?.jsonData || '{}',
+            csvData: extracted.extractedData?.csvData || 'Col,Valor\nSin tabular,Disponible en plainText',
+          },
+          mimeType,
+        });
+        console.log('Documento guardado en Firebase exitosamente');
+      } catch (firebaseError) {
+        console.error('Error al guardar en Firebase:', firebaseError);
+        // Continue even if Firebase save fails - local storage will still work
+      }
 
       const updatedHistory = [newDoc, ...history];
       saveHistory(updatedHistory);
